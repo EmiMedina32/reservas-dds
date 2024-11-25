@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Países</title>
+</head>
+<body>
+  <h1>Lista de Países</h1>
+  
+  <ul>
+    {% if paises %}
+      {% for pais in paises %}
+        <li>{{ pais['Nombre'] }}</li> <!-- Aquí mostramos el nombre del país -->
+      {% endfor %}
+    {% else %}
+      <li>No hay países disponibles</li>  <!-- Mensaje si no hay países -->
+    {% endif %}
+  </ul>
+
+</body>
+</html>

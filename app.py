@@ -1,22 +1,23 @@
-from flask import Flask, jsonify,request
+from flask import Flask, render_template, jsonify,request
 from flask_cors import CORS  # Importar CORS
 import mysql.connector
 from mysql.connector import Error
+
 app = Flask(__name__)
 
 # Habilitar CORS para todas las rutas
 CORS(app)
 
-@app.route("/api/pais")
-def pais():
-    # Configura la conexión a la base de datos
-    config = {
-        'user': 'reservas',
-        'password': 'reservas111',
-        'host': '10.9.120.5',
-        'database': 'reservastheloft'
-    }
+# Configuración de la base de datos
+config = {
+    'user': 'reservas',
+    'password': 'reservas111',
+    'host': '10.9.120.5',
+    'database': 'reservastheloft'
+}
 
+def obtener_paises():
+    """Función para obtener la lista de países desde la base de datos"""
     try:
         # Conectar a la base de datos MySQL
         conn = mysql.connector.connect(**config)
@@ -34,19 +35,31 @@ def pais():
 
         # Convertir los resultados a diccionarios
         lista = [dict(zip(columnas, fila)) for fila in resultados]
+        return lista
 
     except mysql.connector.Error as err:
         print(f"Error: {err}")
-        return jsonify({"error": str(err)}), 500
+        return None
     finally:
         # Cerrar la conexión y el cursor
-        cursor.close()
-        conn.close()
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
 
-    # Devolver los resultados como JSON
-    return jsonify(lista)
+@app.route("/api/pais")
+def api_pais():
+    """Ruta que devuelve la lista de países en formato JSON"""
+    paises = obtener_paises()
+    if paises is None:
+        return jsonify({"error": "No se pudieron obtener los países"}), 500
+    return jsonify(paises)
 
-if __name__ == "__main__":
+@app.route('/pais')
+def pais():
+    paises = obtener_paises()  # Asegúrate de que la función 'obtener_paises' devuelve una lista válida de países
+    return render_template('lista_paises.html', paises=paises)
+
+if __name__ == '__main__':
     app.run(debug=True)
 
 
