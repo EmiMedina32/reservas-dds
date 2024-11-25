@@ -63,41 +63,59 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 
-
-
-@app.route("/api/establecimientos")
-def establecimientos():
-    
+# Función para obtener los establecimientos desde la base de datos
+def obtener_establecimientos():
     config = {
-    'user': 'reservas',
-    'password': 'reservas111',
-    'host': '10.9.120.5',
-    'database': 'reservastheloft'
-}
+        'user': 'reservas',
+        'password': 'reservas111',
+        'host': '10.9.120.5',
+        'database': 'reservastheloft'
+    }
 
     try:
-         # Crea la conexión
+        # Crea la conexión
         conn = mysql.connector.connect(**config)
-        print("Conexión exitosa")
-
-        # Crea un cursor
         cursor = conn.cursor()
 
-        # Consulta para obtener el establecimiento por ID
+        # Consulta para obtener los establecimientos
         query = "SELECT * FROM Establecimientos"
         cursor.execute(query)
-        establecimiento = cursor.fetchall()
+        establecimientos = cursor.fetchall()
 
         cursor.close()
 
+        return establecimientos
+
     except Error as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error al obtener establecimientos: {str(e)}")
+        return []
 
-    if establecimiento:
-        return jsonify(establecimiento)
+@app.route("/api/establecimientos")
+def api_establecimientos():
+    establecimientos = obtener_establecimientos()  # Llamamos a la función que consulta los establecimientos
+
+    if establecimientos:
+        # Retorna los establecimientos en formato JSON
+        return jsonify(establecimientos)
     else:
-        return jsonify({"error": "Establecimiento no encontrado"}), 404
+        # Retorna un mensaje de error si no se encontraron establecimientos
+        return jsonify({"error": "Establecimientos no encontrados"}), 404
 
+
+@app.route('/establecimientos')
+def mostrar_establecimientos():
+    establecimientos = obtener_establecimientos()  # Llamamos a la función para obtener los datos
+
+    if establecimientos:
+        # Renderiza la plantilla HTML con los establecimientos
+        return render_template('establecimientos.html', establecimientos=establecimientos)
+    else:
+        # En caso de que no haya establecimientos, mostramos un mensaje en la plantilla
+        return render_template('establecimientos.html', establecimientos=None)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 @app.route("/api/establecimientos/<int:id>", methods=['GET'])
 def obtener_establecimiento(id):
