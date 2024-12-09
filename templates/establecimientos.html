@@ -12,7 +12,12 @@
   {% if establecimientos %}
     <ul>
       {% for establecimiento in establecimientos %}
-        <li>{{ establecimiento[1] }}</li>  <!-- Cambia el índice según la estructura de tu base de datos -->
+        <li>
+          <!-- Enlace a la página de detalles del establecimiento -->
+          <a href="{{ url_for('detalle_establecimiento', id=establecimiento['ID']) }}">
+            {{ establecimiento['Nombre'] }}
+          </a>
+        </li>
       {% endfor %}
     </ul>
   {% else %}

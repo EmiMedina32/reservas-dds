@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify,request
+from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS  # Importar CORS
 import mysql.connector
 from mysql.connector import Error
@@ -8,38 +8,34 @@ app = Flask(__name__)
 # Habilitar CORS para todas las rutas
 CORS(app)
 
-# Configuración de la base de datos
-config = {
-    'user': 'reservas',
-    'password': 'reservas111',
-    'host': '10.9.120.5',
-    'database': 'reservastheloft'
-}
+def obtener_datos(query, params=None):
+    """Función para ejecutar una consulta SQL de forma segura"""
+    config = {
+        'user': 'reservas',
+        'password': 'reservas111',
+        'host': '10.9.120.5',
+        'database': 'reservastheloft'
+    }
 
-def obtener_paises():
-    """Función para obtener la lista de países desde la base de datos"""
     try:
         # Conectar a la base de datos MySQL
         conn = mysql.connector.connect(**config)
-        print("Conexión exitosa")
+        cursor = conn.cursor(dictionary=True)  # Usar dictionary=True para obtener resultados como diccionarios
 
-        # Crear un cursor
-        cursor = conn.cursor()
-
-        # Ejecutar la consulta SELECT
-        cursor.execute("SELECT * FROM Pais")
-
-        # Obtener los resultados y los nombres de las columnas
-        columnas = [column[0] for column in cursor.description]
+        # Ejecutar la consulta con los parámetros
+        cursor.execute(query, params)
         resultados = cursor.fetchall()
 
-        # Convertir los resultados a diccionarios
-        lista = [dict(zip(columnas, fila)) for fila in resultados]
-        return lista
+        # Cerrar la conexión
+        cursor.close()
+        conn.close()
+
+        return resultados  # Retorna una lista de diccionarios
 
     except mysql.connector.Error as err:
         print(f"Error: {err}")
         return None
+        
     finally:
         # Cerrar la conexión y el cursor
         if conn.is_connected():
@@ -49,73 +45,59 @@ def obtener_paises():
 @app.route("/api/pais")
 def api_pais():
     """Ruta que devuelve la lista de países en formato JSON"""
-    paises = obtener_paises()
+    paises = obtener_datos("SELECT * FROM Pais")
     if paises is None:
         return jsonify({"error": "No se pudieron obtener los países"}), 500
     return jsonify(paises)
 
 @app.route('/pais')
 def pais():
-    paises = obtener_paises()  # Asegúrate de que la función 'obtener_paises' devuelve una lista válida de países
+    paises = obtener_datos("SELECT * FROM Pais")  # Obtener países
     return render_template('lista_paises.html', paises=paises)
 
 if __name__ == '__main__':
     app.run(debug=True)
 
 
-# Función para obtener los establecimientos desde la base de datos
-def obtener_establecimientos():
-    config = {
-        'user': 'reservas',
-        'password': 'reservas111',
-        'host': '10.9.120.5',
-        'database': 'reservastheloft'
-    }
-
-    try:
-        # Crea la conexión
-        conn = mysql.connector.connect(**config)
-        cursor = conn.cursor()
-
-        # Consulta para obtener los establecimientos
-        query = "SELECT * FROM Establecimientos"
-        cursor.execute(query)
-        establecimientos = cursor.fetchall()
-
-        cursor.close()
-
-        return establecimientos
-
-    except Error as e:
-        print(f"Error al obtener establecimientos: {str(e)}")
-        return []
-
+ #   
 @app.route("/api/establecimientos")
 def api_establecimientos():
-    establecimientos = obtener_establecimientos()  # Llamamos a la función que consulta los establecimientos
-
+    """Ruta que devuelve los establecimientos en formato JSON"""
+    establecimientos = obtener_datos('SELECT Nombre FROM Establecimientos')  # Obtener establecimientos
     if establecimientos:
-        # Retorna los establecimientos en formato JSON
-        return jsonify(establecimientos)
+        return jsonify(establecimientos)  # Retorna los establecimientos como JSON
     else:
-        # Retorna un mensaje de error si no se encontraron establecimientos
+        #
         return jsonify({"error": "Establecimientos no encontrados"}), 404
+
 
 
 @app.route('/establecimientos')
 def mostrar_establecimientos():
-    establecimientos = obtener_establecimientos()  # Llamamos a la función para obtener los datos
+    """Ruta que muestra los establecimientos en una plantilla HTML"""
+    # Obtener establecimientos con su ID y Nombre
+    establecimientos = obtener_datos('SELECT Nombre, ID FROM Establecimientos')  # Modificar consulta si es necesario
+    return render_template('establecimientos.html', establecimientos=establecimientos)
 
-    if establecimientos:
-        # Renderiza la plantilla HTML con los establecimientos
-        return render_template('establecimientos.html', establecimientos=establecimientos)
+
+
+@app.route('/detalle_establecimiento/<int:id>')
+def detalle_establecimiento(id):
+    """Ruta que muestra los detalles de un establecimiento"""
+    
+    # Consulta SQL para obtener el teléfono y correo electrónico del establecimiento
+    query = "SELECT Nombre, Telefono, Email FROM Establecimientos WHERE id = %s"  # Asegúrate de que los campos estén bien escritos
+    establecimiento = obtener_datos(query, (id,))  # Pasamos el id como parámetro
+
+    if establecimiento:
+        # Si encontramos el establecimiento, renderizamos la plantilla con los detalles
+        return render_template('detalle_establecimiento.html', establecimiento=establecimiento[0])  
     else:
-        # En caso de que no haya establecimientos, mostramos un mensaje en la plantilla
-        return render_template('establecimientos.html', establecimientos=None)
+        # Si no se encuentra el establecimiento, mostramos un mensaje de error
+        return "Establecimiento no encontrado", 404
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
 
 @app.route("/api/establecimientos/<int:id>", methods=['GET'])
 def obtener_establecimiento(id):

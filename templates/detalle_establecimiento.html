@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle del Establecimiento</title>
+</head>
+<body>
+
+  <h1>Detalle del Establecimiento</h1>
+
+  {% if establecimiento %}
+    <h2>Nombre: {{ establecimiento['Nombre'] }}</h2>
+    <h3>Teléfono: {{ establecimiento['Telefono'] }}</h3>
+    <h3>Correo electrónico: {{ establecimiento['Email'] }}</h3>
+  {% else %}
+    <p>No se encontró el establecimiento.</p>
+  {% endif %}
+
+  <!-- Enlace para regresar a la lista de establecimientos -->
+  <a href="{{ url_for('mostrar_establecimientos') }}">Volver a la lista de establecimientos</a>
+
+</body>
+</html>
