@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de Localidades</title>
+</head>
+<body>
+
+  <h1>Lista de Localidades</h1>
+
+  {% if localidades %}
+    <ul>
+      {% for localidad in localidades %}
+        <li>
+          <!-- Enlace a la página de detalles de la localidad -->
+          <a href="{{ url_for('detalle_localidad', id=localidad['id']) }}">
+            {{ localidad['localidad_nombre'] }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No hay localidades disponibles.</p>
+  {% endif %}
+
+</body>
+</html>

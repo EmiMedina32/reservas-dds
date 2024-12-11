@@ -12,7 +12,8 @@
   {% if establecimiento %}
     <h2>Nombre: {{ establecimiento['Nombre'] }}</h2>
     <h3>Teléfono: {{ establecimiento['Telefono'] }}</h3>
-    <h3>Correo electrónico: {{ establecimiento['Email'] }}</h3>
+    <h3>Correo electrónico: {{ establecimiento['Email'] }}</h3>    
+    <h3>Localidad:           <a href="{{ url_for('detalle_localidad', id=establecimiento['id_localidad']) }}">{{ establecimiento['nombre_localidad'] }}</a></h3>
   {% else %}
     <p>No se encontró el establecimiento.</p>
   {% endif %}

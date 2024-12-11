@@ -21,7 +21,10 @@
       {% endfor %}
     </ul>
   {% else %}
+    <!-- Enlace para regresar a la lista de localidades -->
+    <a href="{{ url_for('localidad') }}">Volver a la lista de localidades</a>
     <p>No hay establecimientos disponibles.</p>
+  </a>
   {% endif %}
 
 </body>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle de la Localidad</title>
+</head>
+<body>
+
+  <h1>Detalle de la Localidad</h1>
+
+  {% if localidad %}
+    <h2>Nombre de la Localidad: {{ localidad['localidad_nombre'] }}</h2>
+    <h3>Provincia: {{ localidad['provincia_nombre'] }}</h3>
+    <h3>País: {{ localidad['pais_nombre'] }}</h3>
+  {% else %}
+    <p>No se encontró la localidad.</p>
+  {% endif %}
+
+  <h2>Establecimientos </h2>
+  <ul>
+    {% if establecimientos %}
+      {% for establecimiento in establecimientos %}
+      <a href="{{ url_for('detalle_establecimiento', id=establecimiento['ID']) }}">
+        <li>{{ establecimiento['Nombre'] }}</li>
+      </a>
+      {% endfor %}
+    {% else %}
+      <li>No hay establecimientos en esta localidad.</li>
+    {% endif %}
+  </ul>
+
+  <!-- Enlace para regresar a la lista de localidades -->
+  <a href="{{ url_for('localidad') }}">Volver a la lista de localidades</a>
+
+</body>
+</html>

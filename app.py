@@ -50,13 +50,42 @@ def api_pais():
         return jsonify({"error": "No se pudieron obtener los países"}), 500
     return jsonify(paises)
 
-@app.route('/pais')
-def pais():
-    paises = obtener_datos("SELECT * FROM Pais")  # Obtener países
-    return render_template('lista_paises.html', paises=paises)
+
+
+@app.route('/localidad')
+def localidad():
+    """Ruta que muestra la lista de localidades"""
+   
+    localidades = obtener_datos("SELECT Localidad.id, Localidad.Nombre AS localidad_nombre FROM Localidad") 
+
+    return render_template('lista_localidades.html', localidades=localidades)
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+@app.route('/detalle_localidad/<int:id>')
+def detalle_localidad(id):
+    """Ruta que muestra los detalles de una localidad"""
+    
+    # Consulta SQL para obtener los detalles de la localidad
+    query1= """SELECT Localidad.id, Localidad.Nombre AS localidad_nombre, 
+               Provincia.Nombre AS provincia_nombre, Pais.Nombre AS pais_nombre 
+            FROM Localidad 
+            JOIN Provincia ON Localidad.provinciaID = Provincia.id 
+            JOIN Pais ON Provincia.paisID = Pais.id
+            WHERE Localidad.id = %s;"""
+    localidad = obtener_datos(query1, (id,))[0] 
+    query2 = """ SELECT Nombre, ID,LocalidadID FROM Establecimientos WHERE localidadID = %s;"""
+    establecimientos = obtener_datos(query2, (id,)) 
+
+    if localidad:
+        # Si encontramos la localidad, renderizamos la plantilla con los detalles
+        return render_template('detalle_localidad.html', localidad=localidad,establecimientos=establecimientos)  
+    else:
+        # Si no se encuentra la localidad, mostramos un mensaje de error
+        return "Localidad no encontrada", 404
+
 
 
  #   
@@ -76,7 +105,10 @@ def api_establecimientos():
 def mostrar_establecimientos():
     """Ruta que muestra los establecimientos en una plantilla HTML"""
     # Obtener establecimientos con su ID y Nombre
-    establecimientos = obtener_datos('SELECT Nombre, ID FROM Establecimientos')  # Modificar consulta si es necesario
+    establecimientos = obtener_datos(
+        """SELECT Nombre, ID
+           FROM Establecimientos e """)
+    
     return render_template('establecimientos.html', establecimientos=establecimientos)
 
 
@@ -86,7 +118,9 @@ def detalle_establecimiento(id):
     """Ruta que muestra los detalles de un establecimiento"""
     
     # Consulta SQL para obtener el teléfono y correo electrónico del establecimiento
-    query = "SELECT Nombre, Telefono, Email FROM Establecimientos WHERE id = %s"  # Asegúrate de que los campos estén bien escritos
+    query = """SELECT e.Nombre, e.Telefono, e.Email, l.nombre AS nombre_localidad , l.id AS id_localidad FROM Establecimientos e            
+                JOIN Localidad l ON e.LocalidadID = l.id 
+                WHERE e.id = %s"""  # Asegúrate de que los campos estén bien escritos
     establecimiento = obtener_datos(query, (id,))  # Pasamos el id como parámetro
 
     if establecimiento:
